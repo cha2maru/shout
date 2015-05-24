@@ -755,13 +755,13 @@ $(function() {
 			users.find(".user").each(function() {
 				var nick = $(this).text().replace(/[~&@%+]/, "");
 				nicks.push(nick);
-				nicks.push("@"+nick);
 			});
 			users.data("nicks", nicks);
 		}
 
 		for (var i in nicks) {
 			words.push(nicks[i]);
+			words.push("@"+nicks[i]);
 		}
 
 		var channels = sidebar.find(".chan")
