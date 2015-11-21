@@ -34,4 +34,17 @@ describe("Link plugin", function() {
 			done();
 		});
 	});
+
+	it("should be able to fetch image about URLs", function(done) {
+		link.call(this.irc, this.irc, this.network);
+
+
+		this.irc.createMessage({
+			message: "http://nekogazou.com/wp-content/uploads/2015/09/51f2b9302880a8b07bfc952fea0eba97.jpg"
+		});
+
+		this.irc.once("toggle", function(data) {
+			done();
+		});
+	});
 });

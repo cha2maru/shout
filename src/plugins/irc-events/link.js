@@ -5,7 +5,7 @@ var request = require("request");
 var Helper = require("../../helper");
 var es = require("event-stream");
 var Iconv = require("iconv").Iconv;
-var jschardet = require('jschardet');
+var jschardet = require("jschardet");
 
 process.setMaxListeners(0);
 
@@ -100,9 +100,11 @@ function fetch(url, cb) {
 	}
 	var length = 0;
 	var limit = 1024 * 10;
+	var binaryflag = false;
 	req
 		.on("response", function(res) {
 			if (!(/(text\/html|application\/json)/.test(res.headers["content-type"]))) {
+				binaryflag = true;
 				res.req.abort();
 			}
 		})
@@ -119,12 +121,14 @@ function fetch(url, cb) {
 			var body;
 			var type;
 			var org = data;
-			try {
-				var detectResult = jschardet.detect(data) || {};
-				var iconv = new Iconv(detectResult.encoding, 'UTF-8//TRANSLIT//IGNORE');
-				data = iconv.convert(data).toString();
-			} catch(e) {
-				data = org;
+			if (!binaryflag){
+				try {
+					var detectResult = jschardet.detect(data) || {};
+					var iconv = new Iconv(detectResult.encoding, "UTF-8//TRANSLIT//IGNORE");
+					data = iconv.convert(data).toString();
+				} catch (e) {
+					data = org;
+				}
 			}
 
 			try {
