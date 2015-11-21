@@ -4,6 +4,8 @@ var Msg = require("../../models/msg");
 var request = require("request");
 var Helper = require("../../helper");
 var es = require("event-stream");
+var Iconv = require("iconv").Iconv;
+var jschardet = require('jschardet');
 
 process.setMaxListeners(0);
 
@@ -92,7 +94,7 @@ function parse(msg, url, res, client) {
 
 function fetch(url, cb) {
 	try {
-		var req = request.get(url);
+		var req = request.get({url:url,encoding: null});
 	} catch (e) {
 		return;
 	}
@@ -116,6 +118,15 @@ function fetch(url, cb) {
 			if (err) return;
 			var body;
 			var type;
+			var org = data;
+			try {
+				var detectResult = jschardet.detect(data) || {};
+				var iconv = new Iconv(detectResult.encoding, 'UTF-8//TRANSLIT//IGNORE');
+				data = iconv.convert(data).toString();
+			} catch(e) {
+				data = org;
+			}
+
 			try {
 				body = JSON.parse(data);
 			} catch (e) {
