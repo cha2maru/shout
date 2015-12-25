@@ -65,7 +65,7 @@ describe("Link plugin", function() {
 
 
 		this.irc.createMessage({
-			message: "https://t.co/5O60PAX2Al"
+			message: 'よかぜ@反応遅延さんはTwitterを使っています: "見つめちゃやーよ① https://t.co/H7z5j0BF5j"'
 		});
 
 		this.irc.once("toggle", function(data) {

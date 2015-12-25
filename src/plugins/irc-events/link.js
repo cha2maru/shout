@@ -47,6 +47,8 @@ module.exports = function(irc, network) {
 		});
 
 		var link = links[0];
+		link = link.replace(/[^-_.!~*\'()a-zA-Z0-9;\/?:\@&=+\$,%#]*$/,"");
+		// link = link.replace(/\"/,"");
 		fetch(link, function(res) {
 			parse(msg, link, res, client);
 		});
