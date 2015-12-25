@@ -47,4 +47,31 @@ describe("Link plugin", function() {
 			done();
 		});
 	});
+
+	it("should be able to fetch image about URLs", function(done) {
+		link.call(this.irc, this.irc, this.network);
+
+
+		this.irc.createMessage({
+			message: "https://t.co/QWcOz288xd"
+		});
+
+		this.irc.once("toggle", function(data) {
+			done();
+		});
+	});
+	it("should be able to fetch image about URLs", function(done) {
+		link.call(this.irc, this.irc, this.network);
+
+
+		this.irc.createMessage({
+			message: "https://t.co/5O60PAX2Al"
+		});
+
+		this.irc.once("toggle", function(data) {
+			done();
+		});
+	});
+
+	
 });

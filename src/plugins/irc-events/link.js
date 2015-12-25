@@ -97,6 +97,9 @@ function parse(msg, url, res, client) {
 	default:
 		return;
 	}
+	if(toggle.thumb){
+		toggle.thumb = toggle.thumb.replace(/:large/,"");
+	}
 
 	client.emit("toggle", toggle);
 }
