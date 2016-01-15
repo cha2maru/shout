@@ -60,12 +60,12 @@ describe("Link plugin", function() {
 			done();
 		});
 	});
-	it("should be able to fetch image about URLs", function(done) {
+	it("check twitter pic", function(done) {
 		link.call(this.irc, this.irc, this.network);
 
 
 		this.irc.createMessage({
-			message: 'よかぜ@反応遅延さんはTwitterを使っています: "見つめちゃやーよ① https://t.co/H7z5j0BF5j"'
+			message: 'ふぁてちゃ提督@西日本遠征中さんはTwitterを使っています: "あぁ〜〜 https://t.co/r3hUUgLlXM"'
 		});
 
 		this.irc.once("toggle", function(data) {
