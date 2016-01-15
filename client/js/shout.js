@@ -191,12 +191,38 @@ $(function() {
 		var chan = chat.find(target);
 		var from = data.msg.from;
 
+		var msg = $(render("msg", {messages: [data.msg]}));
 		chan.find(".messages")
-			.append(render("msg", {messages: [data.msg]}))
+			.append(msg)
 			.trigger("msg", [
 				target,
 				data.msg
 			]);
+
+		var text = msg.find(".text");
+		if (text.find("i").size() === 1) {
+			text = text.find("i");
+		}
+		// Channels names are strings (beginning with a '&' or '#' character)
+		// of length up to 200 characters.
+		// See https://tools.ietf.org/html/rfc1459#section-1.3
+		text.html(text.html().replace(/(^|\s)([#&][^\x07\x2C\s]{0,199})/ig,
+				'$1<span class="inline-channel" role="button" tabindex="0" data-chan="$2">$2</span>'));
+		text.find("span.inline-channel")
+			.on("click", function() {
+				var chan = $(".network")
+					.find(".chan.active")
+					.parent(".network")
+					.find(".chan[data-title='" + $(this).data("chan") + "']");
+				if (chan.size() === 1) {
+					chan.click();
+				} else {
+					socket.emit("input", {
+						target: chat.data("id"),
+						text: "/join " + $(this).data("chan")
+					});
+				}
+			});
 
 		if (!chan.hasClass("channel")) {
 			return;
@@ -347,6 +373,7 @@ $(function() {
 		part: true,
 		thumbnails: true,
 		quit: true,
+		notifyAllMessages: false,
 	}, $.cookie("settings"));
 
 	for (var i in options) {
@@ -372,6 +399,7 @@ $(function() {
 			"nick",
 			"part",
 			"quit",
+			"notifyAllMessages",
 		].indexOf(name) !== -1) {
 			chat.toggleClass("hide-" + name, !self.prop("checked"));
 		}
@@ -573,9 +601,10 @@ $(function() {
 		var isQuery = button.hasClass("query");
 		var type = msg.type;
 		var highlight = type.contains("highlight");
-		if (highlight || isQuery) {
+		var message = type.contains("message");
+		var settings = $.cookie("settings") || {};
+		if (highlight || isQuery || (settings.notifyAllMessages && message)) {
 			if (!document.hasFocus() || !$(target).hasClass("active")) {
-				var settings = $.cookie("settings") || {};
 				if (settings.notification) {
 					pop.play();
 				}
