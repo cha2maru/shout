@@ -113,7 +113,7 @@ function fetch(url, cb) {
 		return;
 	}
 	var length = 0;
-	var limit = 1024 * 100;
+	var limit = 1024 * 30;
 	var binaryflag = false;
 	req
 		.on("response", function(res) {
