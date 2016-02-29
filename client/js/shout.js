@@ -130,6 +130,7 @@ $(function() {
 					channels: channels
 				})
 			);
+			channels.forEach(renderChannelMessages);
 			confirmExit();
 		}
 
@@ -172,6 +173,7 @@ $(function() {
 				channels: [data.chan]
 			})
 		);
+		renderChannelMessages(data.chan);
 		var chan = sidebar.find(".chan")
 			.sort(function(a, b) { return $(a).data("id") - $(b).data("id"); })
 			.last();
@@ -182,22 +184,44 @@ $(function() {
 		chan.click();
 	});
 
-	socket.on("msg", function(data) {
+	function buildChatMessage(data) {
+		var type = data.msg.type;
 		var target = "#chan-" + data.chan;
-		if (data.msg.type === "error") {
+		if (type === "error") {
 			target = "#chan-" + chat.find(".active").data("id");
 		}
 
 		var chan = chat.find(target);
 		var from = data.msg.from;
+		var msg;
 
-		var msg = $(render("msg", {messages: [data.msg]}));
-		chan.find(".messages")
-			.append(msg)
-			.trigger("msg", [
-				target,
-				data.msg
-			]);
+		if ([
+			"invite",
+			"join",
+			"mode",
+			"kick",
+			"nick",
+			"part",
+			"quit",
+			"topic",
+			"action",
+		].indexOf(type) !== -1) {
+			switch (type) {
+			case "invite": data.msg.formattedAction = "invited " + data.msg.target + " to"; break;
+			case "join": data.msg.formattedAction = "has joined the channel"; break;
+			case "mode": data.msg.formattedAction = "sets mode"; break;
+			case "kick": data.msg.formattedAction = "has kicked"; break;
+			case "nick": data.msg.formattedAction = "is now known as"; break;
+			case "part": data.msg.formattedAction = "has left the channel"; break;
+			case "quit": data.msg.formattedAction = "has quit"; break;
+			case "topic": data.msg.formattedAction = "has changed the topic to:"; break;
+			default: data.msg.formattedAction = "";
+			}
+
+			msg = $(render("msg_action", data.msg));
+		} else {
+			msg = $(render("msg", data.msg));
+		}
 
 		var text = msg.find(".text");
 		if (text.find("i").size() === 1) {
@@ -224,12 +248,7 @@ $(function() {
 				}
 			});
 
-		if (!chan.hasClass("channel")) {
-			return;
-		}
-
-		var type = data.msg.type;
-		if (type === "message" || type === "action") {
+		if ((type === "message" || type === "action") && chan.hasClass("channel")) {
 			var nicks = chan.find(".users").data("nicks");
 			if (nicks) {
 				var find = nicks.indexOf(from);
@@ -238,14 +257,42 @@ $(function() {
 				}
 			}
 		}
+
+		return msg;
+	}
+
+	function buildChannelMessages(channel, messages) {
+		return messages.reduce(function(docFragment, message) {
+			docFragment.append(buildChatMessage({
+				chan: channel,
+				msg: message
+			}));
+			return docFragment;
+		}, $(document.createDocumentFragment()));
+	}
+
+	function renderChannelMessages(data) {
+		var documentFragment = buildChannelMessages(data.id, data.messages);
+		chat.find("#chan-" + data.id + " .messages").append(documentFragment);
+	}
+
+	socket.on("msg", function(data) {
+		var msg = buildChatMessage(data);
+		var target = "#chan-" + data.chan;
+		chat.find(target + " .messages")
+			.append(msg)
+			.trigger("msg", [
+				target,
+				data.msg
+			]);
 	});
 
 	socket.on("more", function(data) {
-		var target = data.chan;
+		var documentFragment = buildChannelMessages(data.chan, data.messages);
 		var chan = chat
-			.find("#chan-" + target)
+			.find("#chan-" + data.chan)
 			.find(".messages")
-			.prepend(render("msg", {messages: data.messages}))
+			.prepend(documentFragment)
 			.end();
 		if (data.messages.length !== 100) {
 			chan.find(".show-more").removeClass("show");
@@ -342,9 +389,8 @@ $(function() {
 	});
 
 	socket.on("topic", function(data) {
-		// .text() escapes HTML but not quotes. That only matters with text inside attributes.
 		var topic = $("#chan-" + data.chan).find(".header .topic");
-		topic.text(data.topic);
+		topic.html(Handlebars.helpers.parse(data.topic));
 		// .attr() is safe escape-wise but consider the capabilities of the attribute
 		topic.attr("title", data.topic);
 	});
@@ -612,7 +658,8 @@ $(function() {
 				if (settings.badge && Notification.permission === "granted") {
 					var notify = new Notification(msg.from + " says:", {
 						body: msg.text.trim(),
-						icon: "/img/logo-64.png"
+						icon: "/img/logo-64.png",
+						tag: target
 					});
 					notify.onclick = function() {
 						window.focus();

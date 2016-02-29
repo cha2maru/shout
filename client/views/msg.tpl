@@ -1,15 +1,13 @@
-{{#each messages}}
 <div class="msg {{type}} {{#if self}}self{{/if}}">
 	<span class="time">
 		{{tz time}}
 	</span>
 	<span class="from">
 		{{#if from}}
-		<button class="user" style="color: #{{stringcolor from}}">{{mode}}{{from}}</button>
+		<a href="#" class="user" style="color: #{{stringcolor from}}">{{mode}}{{from}}</a>
 		{{/if}}
 	</span>
 	<span class="text">
-		<em class="type">{{type}}</em>
 		{{#equal type "toggle"}}
 			<div class="force-newline">
 				<button id="toggle-{{id}}" class="toggle-button">···</button>
@@ -22,4 +20,3 @@
 		{{/equal}}
 	</span>
 </div>
-{{/each}}

@@ -3,26 +3,22 @@ var Msg = require("../../models/msg");
 
 module.exports = function(irc, network) {
 	var client = this;
-	irc.on("notice", function(data) {
+	irc.on("invite", function(data) {
 		var target = data.to;
 		if (target.toLowerCase() === irc.me.toLowerCase()) {
-			target = data.from;
+			target = "you";
 		}
 
-		var chan = _.findWhere(network.channels, {name: target});
+		var chan = _.findWhere(network.channels, {name: data.channel});
 		if (typeof chan === "undefined") {
 			chan = network.channels[0];
 		}
 
-		var from = data.from || "";
-		if (data.to === "*" || data.from.indexOf(".") !== -1) {
-			from = "";
-		}
 		var msg = new Msg({
-			type: Msg.Type.NOTICE,
-			mode: chan.getMode(from),
-			from: from,
-			text: data.message
+			type: Msg.Type.INVITE,
+			from: data.from,
+			target: target,
+			text: data.channel
 		});
 		chan.messages.push(msg);
 		client.emit("msg", {

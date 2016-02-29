@@ -108,7 +108,13 @@ function parse(msg, url, res, client) {
 
 function fetch(url, cb) {
 	try {
-		var req = request.get({url:url,encoding: null});
+		var req = request.get({
+			url: url,
+			encoding: null,
+			headers: {
+				"User-Agent": "Mozilla/5.0 (compatible; Shout IRC Client; +https://github.com/erming/shout)"
+			}
+		});
 	} catch (e) {
 		return;
 	}
